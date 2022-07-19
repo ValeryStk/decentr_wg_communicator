@@ -24,6 +24,7 @@
     <ProjectGuid>{b079dbb5-e761-44f7-aec6-4eb261efbb75}</ProjectGuid>
     <RootNamespace>TestScheduler</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.20348.0</WindowsTargetPlatformVersion>
+    <ProjectName>DecentrWGcommunicator</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -161,7 +162,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="TestScheduler.cpp" />
+    <ClCompile Include="DecentrWGcommunicator.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="StdCapture.h" />

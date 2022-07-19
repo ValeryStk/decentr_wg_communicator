@@ -1,5 +1,5 @@
-﻿// This app is aimed to send commands to wireguard.exe via files request response
-// It gives the opportunity for this application to run wireguard.exe without admin rights
+﻿// This app is aimed to control wireguard.exe via files request response
+// It gives the opportunity for other applications to run wireguard.exe and wg.exe without admin rights
 /*
 ######################################################################################################
 #                                                                                                    #
