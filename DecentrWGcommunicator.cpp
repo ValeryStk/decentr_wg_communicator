@@ -77,14 +77,13 @@ int main(int argc, char *argv[]) {
 		pathToResources = argv[1];
 		cleanDecentrRegs();
 	    deleteUselessFiles();
+		copyUpdatedFiles(argv[1]);
 
 	}
 	std::cout<<"To run wireguard communicator typy any key and press enter";
 	char c;
 	std::cin>>c;
-	
-	copyUpdatedFiles("C:\\Users\\vivir\\AppData\\Local\\Decentr\\Decentr\\Application\\100.3.4896.80\\Installer");
-	
+		
 
 	if(!isProcessHasSingleInstance()) return EXIT_SUCCESS;
 	
@@ -106,7 +105,7 @@ int main(int argc, char *argv[]) {
 
 	std::cout<<"Tunnel is uninstalled ......... ok";
 
-	//Loop for watching request files from wg_host, run wireguard and write results to response files
+	//Loop for watching request file from wg_host, run wireguard and write result to response file
 	bool isRun = true;
 	while (isRun) {
 
@@ -264,7 +263,6 @@ void writeResponseFile(const std::string& response)
 
 
 //base functions for tuning up
-
 void hideWindow()
 {
 	HWND hWin = GetForegroundWindow();
