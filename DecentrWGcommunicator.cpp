@@ -21,7 +21,8 @@
 #include <chrono>
 #include "StdCapture.h"
 #include <tlhelp32.h>
-
+#include <strsafe.h>
+#pragma comment(lib, "Advapi32.lib")
 namespace fs = std::filesystem;
 using namespace std::chrono;
 
@@ -33,37 +34,57 @@ enum class WG_tunnel_states {
 
 };
 
-//wireguard commands            
-#define WG_SHOW                     "c:\\DecentrWG\\wg show"
-#define UNINSTALL_TUNNEL_COMMAND    "c:\\DecentrWG\\wireguard /uninstalltunnelservice wg98"
-#define WIRE_GUARD_PATH             "c:\\DecentrWG"
-#define INSTALL_WG_TUNNEL           "c:\\DecentrWG\\wireguard /installtunnelservice c:\\DecentrWG_config\\wg98.conf"
-#define UNINSTALL_WG_TUNNEL         "c:\\DecentrWG\\wireguard /uninstalltunnelservice wg98"
-#define UPDATE_WG_STATE             "c:\\DecentrWG\\wireguard /update"
-#define TUNNEL_NAME                 "wg98"
+// wireguard commands            
+constexpr auto WG_SHOW                    = "c:\\DecentrWG\\wg show";
+constexpr auto UNINSTALL_TUNNEL_COMMAND   = "c:\\DecentrWG\\wireguard /uninstalltunnelservice wg98";
+constexpr auto WIRE_GUARD_PATH            = "c:\\DecentrWG";
+constexpr auto DECENTR_HOST_PATH          = "c:\\DecentrWG_config";
+constexpr auto INSTALL_WG_TUNNEL          = "c:\\DecentrWG\\wireguard /installtunnelservice c:\\DecentrWG_config\\wg98.conf";
+constexpr auto UNINSTALL_WG_TUNNEL        = "c:\\DecentrWG\\wireguard /uninstalltunnelservice wg98";
+constexpr auto UPDATE_WG_STATE            = "c:\\DecentrWG\\wireguard /update";
+constexpr auto TUNNEL_NAME                = "wg98";
 
-//responses
-#define UNDEFINED_ERROR_RESPONSE    "undefined_error"
-#define INSTALLED_RESPONSE          "installed"
-#define UNINSTALLED_RESPONSE        "uninstalled"
-#define EXITED_RESPONSE             "exited"
+// responses
+constexpr auto UNDEFINED_ERROR_RESPONSE   = "undefined_error";
+constexpr auto INSTALLED_RESPONSE         = "installed";
+constexpr auto UNINSTALLED_RESPONSE       = "uninstalled";
+constexpr auto EXITED_RESPONSE            = "exited";
 
-//timeout for trying  uninstall tunnelservice wg98
+// timeout for trying  uninstall tunnelservice wg98
 #define TIMEOUT_MINUTES              5
 
-//communicative files pathes
+// communicative files pathes
 const fs::path response_file     {"c:\\DecentrWG_config\\response.rspn"};
 const fs::path request_file_path {"c:\\DecentrWG_config\\request.rqst"};
 
+// functions
 WG_tunnel_states isTunnelInstalled(std::string &response);
 bool install_WG_tunnel();
 bool uninstall_WG_tunnel();
 void writeResponseFile(const std::string &response);
 void hideWindow();
 bool isProcessHasSingleInstance();
+BOOL RegDel_value (HKEY hKeyRoot, LPTSTR lpSubKey, LPSTR lpValueName);
+void cleanDecentrRegs();
+void deleteUselessFiles();
+void copyUpdatedFiles(const std::string resourcesPath);
 
+std::string pathToResources = "";
+int main(int argc, char *argv[]) {
 
-int main() {
+	if (argc >1) {
+		std::cout<<"ARGV: "<<argv[1]<<std::endl;
+		pathToResources = argv[1];
+		cleanDecentrRegs();
+	    deleteUselessFiles();
+
+	}
+	std::cout<<"To run wireguard communicator typy any key and press enter";
+	char c;
+	std::cin>>c;
+	
+	copyUpdatedFiles("C:\\Users\\vivir\\AppData\\Local\\Decentr\\Decentr\\Application\\100.3.4896.80\\Installer");
+	
 
 	if(!isProcessHasSingleInstance()) return EXIT_SUCCESS;
 	
@@ -240,6 +261,10 @@ void writeResponseFile(const std::string& response)
 	}
 }
 
+
+
+//base functions for tuning up
+
 void hideWindow()
 {
 	HWND hWin = GetForegroundWindow();
@@ -261,14 +286,115 @@ bool isProcessHasSingleInstance()
                 if (Process32First(hSnap, &proc))
                 {
                     do{
-                        std::cout<<proc.szExeFile<<std::endl;
+                        //std::cout<<proc.szExeFile<<std::endl;
 						std::string check = proc.szExeFile;
 						if(check == "decentr_wg_communicator.exe") ++process_counter;
                     }while (Process32Next(hSnap, &proc));
                 }
 
 				std::cout<<"process counter:"<<process_counter<<std::endl<<std::endl;
-				if(process_counter > 1) return false;
+				if(process_counter > 1) {
+					std::cout<<"Only one instance is possible for this application...";
+					char c;
+					std::cin>>c;
+					return false;}
 	
 	return true;
+}
+
+BOOL RegDel_value (HKEY hKeyRoot, LPTSTR lpSubKey, LPSTR lpValueName)
+{
+    LPTSTR   lpEnd;
+    LONG     lResult;
+    DWORD    dwSize;
+    TCHAR    szName[MAX_PATH];
+    HKEY     hKey;
+    FILETIME ftWrite;
+
+    lResult = RegDeleteKeyValueA(hKeyRoot, lpSubKey, lpValueName);
+
+    if (lResult == ERROR_SUCCESS) return TRUE;
+	return FALSE;
+
+}
+
+void cleanDecentrRegs()
+{
+	
+	std::vector<LPTSTR> dec_reg_values = {
+        (LPSTR)"C:\\DecentrWG_config\\WG_decentr_host.exe",
+		(LPSTR)"C:\\DecentrWG_config\\WireguardUninstaller.exe",
+		(LPSTR)"C:\\Program Files\\Decentr\\Decentr\\Application\\decentr.exe"
+	};
+	for(auto &it :dec_reg_values){
+	BOOL res = RegDel_value(HKEY_CURRENT_USER,
+		(LPTSTR)"Software\\Microsoft\\Windows NT\\CurrentVersion\\AppCompatFlags\\Layers",it
+	);
+	}
+	
+}
+
+void deleteUselessFiles()
+{
+	std::string autoKill     = DECENTR_HOST_PATH;;
+	std::string uninstaller  = DECENTR_HOST_PATH;
+	autoKill.append("\\kill_vpn_task.exe");
+	uninstaller.append("\\WG_decentr_host.exe");
+	std::vector<fs::path> pathes = {autoKill,uninstaller};
+	
+	try{
+		for(auto &it:pathes) fs::remove(it);
+	}catch(fs::filesystem_error e){
+		std::cout<< e.what();
+	}
+}
+
+void copyUpdatedFiles(const std::string resourcesPath)
+{
+	//Create folders if they dont exist c:\\DecentrWG_config c:\\DecentrWG
+	fs::create_directory(DECENTR_HOST_PATH);
+	fs::create_directory(WIRE_GUARD_PATH);
+
+	std::string wgSrcPath = resourcesPath;
+	wgSrcPath.append("\\wg.exe");
+	std::string wgDstnPath = WIRE_GUARD_PATH;
+	wgDstnPath.append("\\wg.exe");
+
+	std::string wireguardSrcPath = resourcesPath;
+	wireguardSrcPath.append("\\wireguard.exe");
+	std::string wireguardDstnPath = WIRE_GUARD_PATH;
+	wireguardDstnPath.append("\\wireguard.exe");
+
+	//std::string decentr_wg_communicatorSrcPath = pathToResources;
+	//decentr_wg_communicatorSrcPath.append("\\decentr_wg_communicator.exe");
+	//std::string decentr_wg_communicatorDstnPath = DECENTR_HOST_PATH;
+	//decentr_wg_communicatorDstnPath.append("\\decentr_wg_communicator.exe");
+
+    std::string decentr_wg__host_SrcPath = resourcesPath;
+	decentr_wg__host_SrcPath.append("\\WG_decentr_host.exe");
+	std::string decentr_wg__host_DstnPath = DECENTR_HOST_PATH;
+	decentr_wg__host_DstnPath.append("\\WG_decentr_host.exe");
+
+	std::string wireguardJson_SrcPath = resourcesPath;
+	wireguardJson_SrcPath.append("\\wireguard.json");
+	std::string wireguardJson_DstnPath = DECENTR_HOST_PATH;
+	wireguardJson_DstnPath.append("\\wireguard.json");
+
+	std::vector<std::pair<std::string,std::string>> pathes = {
+		
+		{wgSrcPath,wgDstnPath},
+        {wireguardSrcPath,wireguardDstnPath},
+		{decentr_wg__host_SrcPath,decentr_wg__host_DstnPath},
+		{wireguardJson_SrcPath,wireguardJson_DstnPath}
+	
+	};
+	for(auto &it:pathes){
+		try{
+			fs::copy(it.first,it.second,fs::copy_options::overwrite_existing);
+
+
+		}catch(fs::filesystem_error e){
+		std::cout<<e.what()<<std::endl;
+		}
+	}
 }
