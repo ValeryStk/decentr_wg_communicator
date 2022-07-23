@@ -314,13 +314,8 @@ bool isProcessHasSingleInstance()
 
 BOOL RegDel_value (HKEY hKeyRoot, LPCSTR lpSubKey, LPSTR lpValueName)
 {
-    LPTSTR   lpEnd;
-    LONG     lResult;
-    DWORD    dwSize;
-    TCHAR    szName[MAX_PATH];
-    HKEY     hKey;
-    FILETIME ftWrite;
 
+    LONG     lResult;
     lResult = RegDeleteKeyValueA(hKeyRoot, lpSubKey, lpValueName);
 
     if (lResult == ERROR_SUCCESS) return TRUE;
