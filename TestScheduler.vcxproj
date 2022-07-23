@@ -175,8 +175,12 @@
     <ClCompile Include="DecentrWGcommunicator.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="resource.h" />
     <ClInclude Include="StdCapture.h" />
     <ClInclude Include="WinReg.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="DecentrWGcommunicator.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
