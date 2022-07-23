@@ -23,5 +23,8 @@
     <ClInclude Include="StdCapture.h">
       <Filter>Исходные файлы</Filter>
     </ClInclude>
+    <ClInclude Include="WinReg.hpp">
+      <Filter>Исходные файлы</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
