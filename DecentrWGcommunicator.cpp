@@ -27,6 +27,7 @@
 #include <codecvt>
 #include<TCHAR.H>
 #include "WinReg.hpp"
+#include <thread>
 #pragma comment(lib, "Advapi32.lib")
 
 using winreg::RegKey;
@@ -38,9 +39,9 @@ using std::pair;
 using std::wstring;
 using std::cout;
 
-
 namespace fs = std::filesystem;
 using namespace std::chrono;
+using namespace std::chrono_literals;
 
 enum class WG_tunnel_states {
 
@@ -67,7 +68,7 @@ constexpr auto UNINSTALLED_RESPONSE       = "uninstalled";
 constexpr auto EXITED_RESPONSE            = "exited";
 
 // timeout for trying  uninstall tunnelservice wg98
-constexpr auto TIMEOUT_MINUTES            =  5;
+constexpr auto TIMEOUT_MINUTES            =  5min;
 
 // communicative files pathes
 const fs::path response_file     {"c:\\DecentrWG_config\\response.rspn"};
@@ -97,7 +98,7 @@ int main(int argc, char *argv[]) {
         cleanDecentrRegs();
         deleteUselessFiles();
         copyUpdatedFiles(argv[1]);
-        exit(0);
+        //exit(0);
     }
             
     if(!isProcessHasSingleInstance()) return EXIT_SUCCESS;
@@ -106,26 +107,26 @@ int main(int argc, char *argv[]) {
     hideWindow();
 
     //Try to uninstall vpn wireguardtunnel wg98 if it was installed untill this app will get the first request or timeout
-    auto start = high_resolution_clock::now();
+    auto startTime = high_resolution_clock::now();
 
     while(true){
     
-    Sleep(200);
-    auto stop = high_resolution_clock::now();
-    auto duration = duration_cast<minutes>(stop - start);
-    if (duration.count() > TIMEOUT_MINUTES) break;
+    std::this_thread::sleep_for(200ms);
+    auto nowTime = high_resolution_clock::now();
+    auto duration = duration_cast<minutes>(nowTime - startTime);
+    if (duration > TIMEOUT_MINUTES) break;
     if(fs::exists(request_file_path))  break;
     if(uninstall_WG_tunnel()) break;
 
     }
 
-    std::cout<<"Tunnel is uninstalled ......... ok";
+    //std::cout<<"Tunnel is uninstalled ......... ok";
 
     //Loop for watching request file from wg_host, run wireguard and write result to response file
     bool isRun = true;
     while (isRun) {
 
-        Sleep(100);
+        std::this_thread::sleep_for(100ms);
         
         try {
             if (fs::exists(request_file_path)) {
@@ -155,17 +156,17 @@ int main(int argc, char *argv[]) {
                         switch (result) {
 
                         case WG_tunnel_states::INSTALLED:
-                            std::cout << "Tunnel is installed: "   << response    << std::endl;
+                            //cout << "Tunnel is installed: "   << response    << std::endl;
                             writeResponseFile(INSTALLED_RESPONSE);
                             break;
 
                         case WG_tunnel_states::UNDEFINED_ERROR:
-                            std::cout << "WG show error: "         << response    << std::endl; 
+                            //cout << "WG show error: "         << response    << std::endl; 
                             writeResponseFile(UNDEFINED_ERROR_RESPONSE);
                             break;
 
                         case WG_tunnel_states::UNINSTALLED:
-                            std::cout << "\nTunnel is uninstalled: " << response  << std::endl;
+                            //cout << "Tunnel is uninstalled: " << response  << std::endl;
                             writeResponseFile(UNINSTALLED_RESPONSE);
                             break;
                         }
@@ -180,7 +181,7 @@ int main(int argc, char *argv[]) {
                     try{
                         fs::remove(request_file_path);
                     }catch(fs::filesystem_error e){
-                       std::cout << e.what();
+                       //cout << e.what();
                     }
 
                 }
@@ -189,7 +190,7 @@ int main(int argc, char *argv[]) {
         }
         catch (fs::filesystem_error& e) {
         
-            std::cout << e.what();
+            //cout << e.what();
         
         }
        
