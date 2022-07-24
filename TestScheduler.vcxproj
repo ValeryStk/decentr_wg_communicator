@@ -182,6 +182,9 @@
   <ItemGroup>
     <ResourceCompile Include="DecentrWGcommunicator.rc" />
   </ItemGroup>
+  <ItemGroup>
+    <Image Include="wg_com.ico" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
